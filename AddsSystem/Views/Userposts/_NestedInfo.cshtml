@@ -1,0 +1,81 @@
+﻿@model IEnumerable<AddsSystem.Models.UserPost>
+
+@{
+    ViewBag.Title = "_NestedInfo";
+}
+
+<h2>All your adds:</h2>
+
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Info)
+        </th>
+
+        <th></th>
+    </tr>
+
+    @foreach (var userPost in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => userPost.Title)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => userPost.Info)
+            </td>
+
+            <td>
+                @if (ViewContext.HttpContext.User.Identity.IsAuthenticated)
+                {
+                    @Html.ActionLink("Edit", "Edit", new { id = userPost.UserPostId }) <a href="javascript:void(0);" data-id="@userPost.UserPostId" class="deleteItem">Delete</a>
+                } 
+                                    
+            </td>
+        </tr>
+
+        <tr>
+            @foreach (var postImage in userPost.PostImages)
+            {
+                <td>
+                    <img src="/Userposts/Download/?p=@(postImage.Id + postImage.Extension)&d=@postImage.FileName" width="150" height="84">                   
+                </td>
+            }
+
+        </tr>
+    }
+
+</table>
+
+@section Scripts {
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        $('.deleteItem').click(function (e) {
+            e.preventDefault();
+            var $ctrl = $(this);
+            if (confirm('Do you really want to delete this post?')) {
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { id: $(this).data('id') }
+                }).done(function (data) {
+                    if (data.Result == "OK") {
+                        $ctrl.closest('.table').remove();
+                    }
+                    else if (data.Result.Message) {
+                        alert(data.Result.Message);
+                    }
+                }).fail(function () {
+                    alert("There is something wrong. Please try again.");
+                })
+
+            }
+        });
+    </script>
+}
